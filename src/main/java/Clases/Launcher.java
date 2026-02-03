@@ -1,9 +1,9 @@
-package com.example.practica1_ads;
+package Clases;
 
 import javafx.application.Application;
 
 public class Launcher {
     public static void main(String[] args) {
-        Application.launch(HelloApplication.class, args);
+        Application.launch(InterfazGuasavito.class, args);
     }
 }
