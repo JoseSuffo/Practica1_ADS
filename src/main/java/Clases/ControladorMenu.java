@@ -32,21 +32,25 @@ public class ControladorMenu {
                 dialogTlf.setContentText("Introduce el teléfono:");
                 Optional<String> telefono = dialogTlf.showAndWait();
 
-                if(telefono.isPresent()){
+                try {
                     ejecutarInsert(nombre.get(), direccion.get(), telefono.get());
+                    mostrarAlerta("Éxito", "Guardado: " + nombre.get());
+                } catch (SQLException e) {
+                    mostrarAlerta("Error", "No se pudo guardar: " + e.getMessage());
                 }
             }
         }
     }
 
-    public void ejecutarInsert(String nombre, String direccion, String telefono) {
+    public void ejecutarInsert(String nombre, String direccion, String telefono) throws SQLException {
         String sqlPersona = "INSERT INTO Personas (nombre, direccion) VALUES (?, ?)";
         String sqlTelefono = "INSERT INTO Telefonos (personaId, telefono) VALUES (LAST_INSERT_ID(), ?)";
 
-        try(Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)){
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             conn.setAutoCommit(false);
             try (PreparedStatement pstmtP = conn.prepareStatement(sqlPersona);
                  PreparedStatement pstmtT = conn.prepareStatement(sqlTelefono)) {
+
                 pstmtP.setString(1, nombre);
                 pstmtP.setString(2, direccion);
                 pstmtP.executeUpdate();
@@ -55,14 +59,10 @@ public class ControladorMenu {
                 pstmtT.executeUpdate();
 
                 conn.commit();
-                mostrarAlerta("Éxito", "Guardado: "+nombre+" con teléfono "+telefono);
-
-            }catch(SQLException e){
+            } catch (SQLException e) {
                 conn.rollback();
                 throw e;
             }
-        }catch(SQLException e){
-            mostrarAlerta("Error", "No se pudo guardar: " + e.getMessage());
         }
     }
 
@@ -70,119 +70,96 @@ public class ControladorMenu {
     public void botonBajas() {
         TextInputDialog dialogId = new TextInputDialog();
         dialogId.setTitle("Baja de Persona");
-        dialogId.setHeaderText("Eliminar registro");
-        dialogId.setContentText("Introduce el ID de la persona:");
+        dialogId.setHeaderText("Eliminar por ID");
+        dialogId.setContentText("Introduce el ID:");
 
-        Optional<String> idInput=dialogId.showAndWait();
+        dialogId.showAndWait().ifPresent(idStr -> {
+            try {
+                int id = Integer.parseInt(idStr);
+                int filas = ejecutarDelete(id); // Llamada al método lógico
 
-        if (idInput.isPresent() && !idInput.get().isEmpty()) {
-            try{
-                int id=Integer.parseInt(idInput.get());
-                ejecutarDelete(id);
-            }catch(NumberFormatException e){
-                mostrarAlerta("Error", "El ID debe ser un número válido.");
+                if (filas > 0) {
+                    mostrarAlerta("Éxito", "Registro eliminado.");
+                } else {
+                    mostrarAlerta("Aviso", "No se encontró el ID " + id);
+                }
+            } catch (NumberFormatException e) {
+                mostrarAlerta("Error", "El ID debe ser un número.");
+            } catch (SQLException e) {
+                mostrarAlerta("Error Crítico", e.getMessage());
             }
-        }
+        });
     }
 
-    public void ejecutarDelete(int id) {
-        String sql="DELETE FROM Personas WHERE id = ?";
-
-        try(Connection conn=DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement pstmt=conn.prepareStatement(sql)) {
-
+    public int ejecutarDelete(int id) throws SQLException {
+        String sql = "DELETE FROM Personas WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
-            int filasAfectadas = pstmt.executeUpdate();
-
-            if(filasAfectadas > 0){
-                mostrarAlerta("Éxito", "Persona con ID "+id+" eliminada correctamente.");
-            }else{
-                mostrarAlerta("Aviso", "No se encontró ninguna persona con el ID "+id);
-            }
-
-        }catch (SQLException e){
-            mostrarAlerta("Error", "No se pudo eliminar: "+e.getMessage());
+            return pstmt.executeUpdate();
         }
     }
 
     @FXML
     public void botonModificaciones() {
         TextInputDialog dialogId = new TextInputDialog();
-        dialogId.setTitle("Modificar Persona");
-        dialogId.setHeaderText("Paso 1: Localizar registro");
-        dialogId.setContentText("Introduce el ID de la persona:");
+        dialogId.setTitle("Modificar");
+        dialogId.setHeaderText("ID a modificar:");
 
-        Optional<String> idInput=dialogId.showAndWait();
+        dialogId.showAndWait().ifPresent(idStr -> {
+            try {
+                int id = Integer.parseInt(idStr);
 
-        if(idInput.isPresent() && !idInput.get().isEmpty()){
-            try{
-                int id=Integer.parseInt(idInput.get());
+                TextInputDialog dNombre = new TextInputDialog();
+                dNombre.setContentText("Nuevo nombre:");
+                String nuevoNom = dNombre.showAndWait().orElse("");
 
-                TextInputDialog dialogNombre = new TextInputDialog();
-                dialogNombre.setTitle("Modificar Persona");
-                dialogNombre.setHeaderText("Paso 2: Nuevo Nombre");
-                dialogNombre.setContentText("Introduce el nombre actualizado:");
-                Optional<String> nuevoNombre = dialogNombre.showAndWait();
+                TextInputDialog dDir = new TextInputDialog();
+                dDir.setContentText("Nueva dirección:");
+                String nuevaDir = dDir.showAndWait().orElse("");
 
-                if(nuevoNombre.isPresent()){
-                    TextInputDialog dialogDir = new TextInputDialog();
-                    dialogDir.setTitle("Modificar Persona");
-                    dialogDir.setHeaderText("Paso 3: Nueva Dirección");
-                    dialogDir.setContentText("Introduce la dirección actualizada:");
-                    Optional<String> nuevaDir = dialogDir.showAndWait();
-
-                    if(nuevaDir.isPresent()){
-                        ejecutarUpdate(id, nuevoNombre.get(), nuevaDir.get());
-                    }
+                if (!nuevoNom.isEmpty()) {
+                    ejecutarUpdate(id, nuevoNom, nuevaDir);
+                    mostrarAlerta("Éxito", "Registro actualizado.");
                 }
-            }catch(NumberFormatException e){
-                mostrarAlerta("Error", "El ID debe ser un número válido.");
+            } catch (Exception e) {
+                mostrarAlerta("Error", e.getMessage());
             }
-        }
+        });
     }
 
-    public void ejecutarUpdate(int id, String nombre, String direccion) {
-        String sql="UPDATE Personas SET nombre = ?, direccion = ? WHERE id = ?";
-
-        try(Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             PreparedStatement pstmt = conn.prepareStatement(sql)){
-
+    public void ejecutarUpdate(int id, String nombre, String direccion) throws SQLException {
+        String sql = "UPDATE Personas SET nombre = ?, direccion = ? WHERE id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, nombre);
             pstmt.setString(2, direccion);
             pstmt.setInt(3, id);
-
-            int filasAfectadas=pstmt.executeUpdate();
-
-            if(filasAfectadas>0){
-                mostrarAlerta("Éxito", "Registro con ID "+id+" actualizado correctamente.");
-            }else{
-                mostrarAlerta("Aviso", "No se encontró ninguna persona con el ID "+id);
-            }
-        }catch (SQLException e){
-            mostrarAlerta("Error", "Error al actualizar: " + e.getMessage());
+            pstmt.executeUpdate();
         }
     }
 
     @FXML
-    public void botonConsultas(){
-        StringBuilder resultado=new StringBuilder();
-        String sql="SELECT * FROM Personas";
-
-        try(Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)){
-            while(rs.next()){
-                resultado.append("ID: ").append(rs.getInt("id"))
-                        .append(" - ").append(rs.getString("nombre")).append("\n");
-            }
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Consulta de Personas");
-            alert.setHeaderText("Registros encontrados:");
-            alert.setContentText(!resultado.isEmpty() ? resultado.toString() : "La tabla está vacía.");
-            alert.showAndWait();
-        }catch (SQLException e){
-            mostrarAlerta("Error", "Error al consultar: " + e.getMessage());
+    public void botonConsultas() {
+        try {
+            String lista = obtenerDatosConsulta();
+            mostrarAlerta("Listado", lista.isEmpty() ? "Vacío" : lista);
+        } catch (SQLException e) {
+            mostrarAlerta("Error", e.getMessage());
         }
+    }
+
+    public String obtenerDatosConsulta() throws SQLException {
+        StringBuilder sb = new StringBuilder();
+        String sql = "SELECT * FROM Personas";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                sb.append(rs.getInt("id")).append(" - ").append(rs.getString("nombre")).append("\n");
+            }
+        }
+        return sb.toString();
     }
 
     @FXML
