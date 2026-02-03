@@ -106,8 +106,61 @@ public class ControladorMenu {
     }
 
     @FXML
-    public void botonModificaciones(javafx.event.ActionEvent actionEvent){
-        System.exit(0);
+    public void botonModificaciones() {
+        TextInputDialog dialogId = new TextInputDialog();
+        dialogId.setTitle("Modificar Persona");
+        dialogId.setHeaderText("Paso 1: Localizar registro");
+        dialogId.setContentText("Introduce el ID de la persona:");
+
+        Optional<String> idInput=dialogId.showAndWait();
+
+        if(idInput.isPresent() && !idInput.get().isEmpty()){
+            try{
+                int id=Integer.parseInt(idInput.get());
+
+                TextInputDialog dialogNombre = new TextInputDialog();
+                dialogNombre.setTitle("Modificar Persona");
+                dialogNombre.setHeaderText("Paso 2: Nuevo Nombre");
+                dialogNombre.setContentText("Introduce el nombre actualizado:");
+                Optional<String> nuevoNombre = dialogNombre.showAndWait();
+
+                if(nuevoNombre.isPresent()){
+                    TextInputDialog dialogDir = new TextInputDialog();
+                    dialogDir.setTitle("Modificar Persona");
+                    dialogDir.setHeaderText("Paso 3: Nueva Dirección");
+                    dialogDir.setContentText("Introduce la dirección actualizada:");
+                    Optional<String> nuevaDir = dialogDir.showAndWait();
+
+                    if(nuevaDir.isPresent()){
+                        ejecutarUpdate(id, nuevoNombre.get(), nuevaDir.get());
+                    }
+                }
+            }catch(NumberFormatException e){
+                mostrarAlerta("Error", "El ID debe ser un número válido.");
+            }
+        }
+    }
+
+    private void ejecutarUpdate(int id, String nombre, String direccion) {
+        String sql="UPDATE Personas SET nombre = ?, direccion = ? WHERE id = ?";
+
+        try(Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)){
+
+            pstmt.setString(1, nombre);
+            pstmt.setString(2, direccion);
+            pstmt.setInt(3, id);
+
+            int filasAfectadas=pstmt.executeUpdate();
+
+            if(filasAfectadas>0){
+                mostrarAlerta("Éxito", "Registro con ID "+id+" actualizado correctamente.");
+            }else{
+                mostrarAlerta("Aviso", "No se encontró ninguna persona con el ID "+id);
+            }
+        }catch (SQLException e){
+            mostrarAlerta("Error", "Error al actualizar: " + e.getMessage());
+        }
     }
 
     @FXML
