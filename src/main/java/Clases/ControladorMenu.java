@@ -39,7 +39,7 @@ public class ControladorMenu {
         }
     }
 
-    private void ejecutarInsert(String nombre, String direccion, String telefono) {
+    public void ejecutarInsert(String nombre, String direccion, String telefono) {
         String sqlPersona = "INSERT INTO Personas (nombre, direccion) VALUES (?, ?)";
         String sqlTelefono = "INSERT INTO Telefonos (personaId, telefono) VALUES (LAST_INSERT_ID(), ?)";
 
@@ -85,7 +85,7 @@ public class ControladorMenu {
         }
     }
 
-    private void ejecutarDelete(int id) {
+    public void ejecutarDelete(int id) {
         String sql="DELETE FROM Personas WHERE id = ?";
 
         try(Connection conn=DriverManager.getConnection(URL, USER, PASSWORD);
@@ -141,7 +141,7 @@ public class ControladorMenu {
         }
     }
 
-    private void ejecutarUpdate(int id, String nombre, String direccion) {
+    public void ejecutarUpdate(int id, String nombre, String direccion) {
         String sql="UPDATE Personas SET nombre = ?, direccion = ? WHERE id = ?";
 
         try(Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
