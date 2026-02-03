@@ -76,7 +76,7 @@ public class ControladorMenu {
         dialogId.showAndWait().ifPresent(idStr -> {
             try {
                 int id = Integer.parseInt(idStr);
-                int filas = ejecutarDelete(id); // Llamada al método lógico
+                int filas = ejecutarDelete(id);
 
                 if (filas > 0) {
                     mostrarAlerta("Éxito", "Registro eliminado.");
