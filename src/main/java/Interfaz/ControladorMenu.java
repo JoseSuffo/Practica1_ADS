@@ -1,8 +1,7 @@
-package Clases;
+package Interfaz;
 
 import javafx.fxml.FXML;
 
-import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import java.sql.*;
 import java.util.Optional;

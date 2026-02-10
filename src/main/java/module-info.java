@@ -17,6 +17,8 @@ module com.example.practica1_ads {
     requires com.almasb.fxgl.all;
     requires javafx.graphics;
 
-    exports Clases;
-    opens Clases to javafx.fxml;
+    exports Interfaz;
+    opens Interfaz to javafx.fxml;
+    exports Lógica;
+    opens Lógica to javafx.fxml;
 }
