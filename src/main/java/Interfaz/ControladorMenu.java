@@ -152,7 +152,7 @@ public class ControladorMenu {
             } catch (NumberFormatException e) {
                 mostrarAlerta("Error", "El ID debe ser un número.");
             } catch (SQLException e) {
-                mostrarAlerta("Error Crítico", e.getMessage());
+                mostrarAlerta("¡Error Crítico!", e.getMessage());
             }
         });
     }

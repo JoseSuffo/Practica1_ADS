@@ -75,7 +75,7 @@ public class CRUDTest {
     void testDireccionCompartida() throws SQLException {
         ControladorMenu controlador = new ControladorMenu();
 
-        Persona p2 = new Persona("Amigo de John");
+        Persona p2 = new Persona("Amigo de José");
         p2.addDireccion(new Direccion("Calle Test 1"));
 
         controlador.ejecutarInsert(p2);
