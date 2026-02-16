@@ -3,7 +3,7 @@ package Persistencia;
 import java.sql.*;
 import Lógica.*;
 
-public class PersonaDAO implements IPersistenciaPersona {
+public class PersonaDAO implements IModificable, IConsultable {
     private final String URL = "jdbc:mariadb://localhost:3306/agenda";
     private final String USER = "usuario1";
     private final String PASSWORD = "superpassword";
