@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Persona {
-    private int id;
     private String nombre;
     private List<Direccion> direcciones;
     private List<Telefono> telefonos;
@@ -15,8 +14,6 @@ public class Persona {
     }
 
     // Getters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
     public String getNombre() { return nombre; }
     public List<Direccion> getDirecciones() { return direcciones; }
     public List<Telefono> getTelefonos() { return telefonos; }
