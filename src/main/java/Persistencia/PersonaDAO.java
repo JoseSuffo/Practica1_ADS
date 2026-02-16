@@ -3,12 +3,12 @@ package Persistencia;
 import java.sql.*;
 import Lógica.*;
 
-public class PersonaDAO {
+public class PersonaDAO implements IPersistenciaPersona {
     private final String URL = "jdbc:mariadb://localhost:3306/agenda";
     private final String USER = "usuario1";
     private final String PASSWORD = "superpassword";
 
-    public void guardarCompleto(Persona p) throws SQLException {
+    public void guardar(Persona p) throws SQLException {
         String sqlPersona = "INSERT INTO Personas (nombre) VALUES (?)";
         String sqlBuscarDir = "SELECT id FROM Direcciones WHERE calle = ?";
         String sqlInsertDir = "INSERT INTO Direcciones (calle) VALUES (?)";
@@ -74,7 +74,7 @@ public class PersonaDAO {
         }
     }
 
-    public void updateNombre(int id, String nombre) throws SQLException {
+    public void actualizarNombre(int id, String nombre) throws SQLException {
         String sql = "UPDATE Personas SET nombre = ? WHERE id = ?";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
              PreparedStatement ps = conn.prepareStatement(sql)) {

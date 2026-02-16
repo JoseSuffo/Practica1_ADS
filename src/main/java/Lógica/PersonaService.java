@@ -1,26 +1,46 @@
 package Lógica;
 
+import Persistencia.IPersistenciaPersona;
 import Persistencia.PersonaDAO;
 
 public class PersonaService {
-    private PersonaDAO personaDAO = new PersonaDAO();
+    private IPersistenciaPersona persistencia;
+
+    public PersonaService(IPersistenciaPersona persistencia) {
+        this.persistencia = persistencia;
+    }
+
+    public PersonaService() {
+        this.persistencia = new PersonaDAO();
+    }
 
     public void registrarNuevaPersona(Persona p) throws Exception {
-        if (p.getNombre().isEmpty()) throw new Exception("Nombre obligatorio.");
-        personaDAO.guardarCompleto(p);
+        if (p.getNombre() == null || p.getNombre().trim().isEmpty()) {
+            throw new Exception("El nombre es obligatorio para el registro.");
+        }
+        persistencia.guardar(p);
     }
 
     public void eliminarPersona(int id) throws Exception {
-        int filas = personaDAO.eliminar(id);
-        if (filas == 0) throw new Exception("El ID no existe.");
+        if (id <= 0) throw new Exception("ID no válido.");
+        int filas = persistencia.eliminar(id);
+        if (filas == 0) {
+            throw new Exception("No se encontró ningún registro con el ID: " + id);
+        }
     }
 
     public void actualizarNombrePersona(int id, String nuevoNombre) throws Exception {
-        if (nuevoNombre.isEmpty()) throw new Exception("El nuevo nombre no puede estar vacío.");
-        personaDAO.updateNombre(id, nuevoNombre);
+        if (nuevoNombre == null || nuevoNombre.trim().isEmpty()) {
+            throw new Exception("El nuevo nombre no puede estar vacío.");
+        }
+        persistencia.actualizarNombre(id, nuevoNombre);
     }
 
     public String obtenerListadoCompleto() throws Exception {
-        return personaDAO.consultarTodo();
+        String datos = persistencia.consultarTodo();
+        if (datos == null || datos.isEmpty()) {
+            return "La agenda se encuentra vacía.";
+        }
+        return datos;
     }
 }
